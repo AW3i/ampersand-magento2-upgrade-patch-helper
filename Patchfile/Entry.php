@@ -65,7 +65,7 @@ class Entry
 
         $hunks = [];
         foreach ($this->lines as $line) {
-            if (Functions::Functions::str_starts_with($line, '@@') && Functions::str_ends_with($line, '@@')) {
+            if (Functions::str_starts_with($line, '@@') && Functions::str_ends_with($line, '@@')) {
                 if (isset($chunk)) {
                     $hunks[] = $chunk;
                 }

@@ -49,7 +49,7 @@ class PatchOverrideValidator
      * @param PatchEntry $patchEntry
      * @param FullModuleList $fullModuleList
      */
-    public function __construct(Magento2Instance $m2, PatchEntry $patchEntry, FullModuleList $fullModuleList)
+    public function __construct(Magento2Instance $m2, PatchEntry $patchEntry)
     {
         $this->m2 = $m2;
         $this->patchEntry = $patchEntry;
@@ -61,7 +61,8 @@ class PatchOverrideValidator
             self::TYPE_PREFERENCE => [],
             self::TYPE_METHOD_PLUGIN => [],
         ];
-        $this->fullModuleList = $fullModuleList;
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $this->fullModuleList = $objectManager->create(\Magento\Framework\Module\FullModuleList);
     }
 
     /**
