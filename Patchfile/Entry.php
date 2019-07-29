@@ -1,6 +1,7 @@
 <?php
 namespace Ampersand\PatchHelper\Patchfile;
 
+use Ampersand\PatchHelper\Helper\Functions;
 class Entry
 {
     /** @var  string */
@@ -58,13 +59,13 @@ class Entry
      */
     public function getHunks()
     {
-        if (!str_starts_with($this->lines[3], '@@')) {
+        if (!Functions::str_starts_with($this->lines[3], '@@')) {
             throw new \InvalidArgumentException("Line 4 of a unified diff should be the hunk " . $this->newFilePath);
         }
 
         $hunks = [];
         foreach ($this->lines as $line) {
-            if (str_starts_with($line, '@@') && str_ends_with($line, '@@')) {
+            if (Functions::Functions::str_starts_with($line, '@@') && Functions::str_ends_with($line, '@@')) {
                 if (isset($chunk)) {
                     $hunks[] = $chunk;
                 }
@@ -101,23 +102,23 @@ class Entry
 
             // Strip out any removal lines so we're left with context and addition
             $additionLines = array_values(array_filter($chunk, function ($line) {
-                return !str_starts_with($line, '-');
+                return !Functions::str_starts_with($line, '-');
             }));
             // Strip out any addition lines so we're left with context and removal
             $removalLines = array_values(array_filter($chunk, function ($line) {
-                return !str_starts_with($line, '+');
+                return !Functions::str_starts_with($line, '+');
             }));
 
             // Collect addition lines with their associated line number and contents
             foreach ($additionLines as $offset => $additionLine) {
-                if (str_starts_with($additionLine, '+')) {
+                if (Functions::str_starts_with($additionLine, '+')) {
                     $modifiedLines['new'][$newStart + $offset - 1] = substr($additionLine, 1);
                 }
             }
 
             // Collect removal lines with their associated line number and contents
             foreach ($removalLines as $offset => $removalLine) {
-                if (str_starts_with($removalLine, '-')) {
+                if (Functions::str_starts_with($removalLine, '-')) {
                     $modifiedLines['original'][$originalStart + $offset - 1] = substr($removalLine, 1);
                 }
             }
@@ -221,17 +222,17 @@ class Entry
         ];
 
         foreach ($phpLinesToSkip as $lineToSkip) {
-            if (str_starts_with($line, $lineToSkip)) {
+            if (Functions::str_starts_with($line, $lineToSkip)) {
                 return false;
             }
         }
 
         for ($i=$lineNumber; $i>=0; $i--) {
             $potentialFunctionDeclaration = trim($fileContents[$i]);
-            if (str_contains($potentialFunctionDeclaration, 'function')) {
+            if (Functions::str_contains($potentialFunctionDeclaration, 'function')) {
                 foreach ($phpLinesToSkip as $lineToSkip) {
                     // This is not a real function declaration, it is a skipped line
-                    if (str_starts_with($potentialFunctionDeclaration, $lineToSkip)) {
+                    if (Functions::str_starts_with($potentialFunctionDeclaration, $lineToSkip)) {
                         continue 2;
                     }
                 }

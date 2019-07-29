@@ -1,6 +1,8 @@
 <?php
 namespace Ampersand\PatchHelper\Patchfile;
 
+use Ampersand\PatchHelper\Helper\Functions;
+
 class Reader
 {
     /** @var string */
@@ -42,7 +44,7 @@ class Reader
 
         while (!$this->file->eof()) {
             $line = $this->file->fgets();
-            if (str_starts_with($line, 'diff -ur ')) {
+            if (Functions::Functions::str_starts_with($line, 'diff -ur ')) {
                 $parts = explode(' ', $line);
                 $entry = new Entry($this->projectDir, $parts[3], $parts[2]);
                 $files[] = $entry;

@@ -4,6 +4,7 @@ namespace Ampersand\PatchHelper\Helper;
 
 use Ampersand\PatchHelper\Patchfile\Entry as PatchEntry;
 use \Magento\Framework\Module\FullModuleList;
+use Ampersand\PatchHelper\Helper\Functions;
 
 class PatchOverrideValidator
 {
@@ -73,13 +74,13 @@ class PatchOverrideValidator
     {
         $file = $this->vendorFilepath;
 
-        if (str_contains($file, '/Test/')) {
+        if (Functions::str_contains($file, '/Test/')) {
             return false;
         }
-        if (str_contains($file, '/tests/')) {
+        if (Functions::str_contains($file, '/tests/')) {
             return false;
         }
-        if (str_contains($file, '/dev/tools/')) {
+        if (Functions::str_contains($file, '/dev/tools/')) {
             return false;
         }
 
@@ -94,10 +95,10 @@ class PatchOverrideValidator
         ]);
 
         if ($validExtension && $extension === 'xml') {
-            if (str_contains($file, '/etc/')) {
+            if (Functions::str_contains($file, '/etc/')) {
                 return false;
             }
-            if (str_contains($file, '/ui_component/')) {
+            if (Functions::str_contains($file, '/ui_component/')) {
                 return false; //todo could these be checked?
             }
         }
@@ -110,7 +111,7 @@ class PatchOverrideValidator
 
         $validModule = false;
         foreach ($modulesToExamine as $moduleToExamine) {
-            if (str_starts_with($file, $moduleToExamine)) {
+            if (Functions::str_starts_with($file, $moduleToExamine)) {
                 $validModule = true;
                 break;
             }
@@ -223,7 +224,7 @@ class PatchOverrideValidator
                     }
                     $pluginClass = $pluginConf['instance'];
                     $pluginClass = ltrim($pluginClass, '\\');
-                    if (!str_starts_with($pluginClass, 'Magento')) {
+                    if (!Functions::str_starts_with($pluginClass, 'Magento')) {
                         $nonMagentoPlugins[$pluginClass] = $pluginClass;
                     }
                 }
@@ -248,7 +249,7 @@ class PatchOverrideValidator
              */
             $methodsIntercepted = [];
             foreach (get_class_methods($plugin) as $method) {
-                if (str_starts_with($method, 'before')) {
+                if (Functions::str_starts_with($method, 'before')) {
                     $methodName = strtolower(substr($method, 6));
                     if (!isset($methodsIntercepted[$methodName])) {
                         $methodsIntercepted[$methodName] = [];
@@ -256,7 +257,7 @@ class PatchOverrideValidator
                     $methodsIntercepted[$methodName][] = $method;
                     continue;
                 }
-                if (str_starts_with($method, 'after')) {
+                if (Functions::str_starts_with($method, 'after')) {
                     $methodName = strtolower(substr($method, 5));
                     if (!isset($methodsIntercepted[$methodName])) {
                         $methodsIntercepted[$methodName] = [];
@@ -264,7 +265,7 @@ class PatchOverrideValidator
                     $methodsIntercepted[$methodName][] = $method;
                     continue;
                 }
-                if (str_starts_with($method, 'around')) {
+                if (Functions::str_starts_with($method, 'around')) {
                     $methodName = strtolower(substr($method, 6));
                     if (!isset($methodsIntercepted[$methodName])) {
                         $methodsIntercepted[$methodName] = [];
@@ -317,7 +318,7 @@ class PatchOverrideValidator
         ];
 
         foreach ($pathsToIgnore as $pathToIgnore) {
-            if (str_contains($path, $pathToIgnore)) {
+            if (Functions::str_contains($path, $pathToIgnore)) {
                 // Class is overridden by magento itself, ignore
                 return false;
             }
@@ -334,7 +335,7 @@ class PatchOverrideValidator
     {
         $file = $this->appCodeFilepath;
 
-        if (str_ends_with($file, 'requirejs-config.js')) {
+        if (Functions::str_ends_with($file, 'requirejs-config.js')) {
             return; //todo review this
         }
 
@@ -370,15 +371,15 @@ class PatchOverrideValidator
         $potentialOverrides = array_filter($this->m2->getListOfHtmlFiles(), function ($potentialFilePath) use ($module, $templatePart) {
             $validFile = true;
 
-            if (!str_ends_with($potentialFilePath, $templatePart)) {
+            if (!Functions::str_ends_with($potentialFilePath, $templatePart)) {
                 // This is not the same file name as our layout file
                 $validFile = false;
             }
-            if (!str_contains($potentialFilePath, $module)) {
+            if (!Functions::str_contains($potentialFilePath, $module)) {
                 // This file path does not contain the module name, so not an override
                 $validFile = false;
             }
-            if (str_contains($potentialFilePath, 'vendor/magento/')) {
+            if (!Functions::str_contains($potentialFilePath, 'vendor/magento/')) {
                 // This file path is a magento core override, not looking at core<->core modifications
                 $validFile = false;
             }
@@ -397,7 +398,7 @@ class PatchOverrideValidator
     {
         $file = $this->appCodeFilepath;
         $parts = explode('/', $file);
-        $area = (str_contains($file, '/adminhtml/')) ? 'adminhtml' : 'frontend';
+        $area = (Functions::str_contains($file, '/adminhtml/')) ? 'adminhtml' : 'frontend';
         $module = $parts[2] . '_' . $parts[3];
 
         $layoutFile = end($parts);
@@ -405,19 +406,19 @@ class PatchOverrideValidator
         $potentialOverrides = array_filter($this->m2->getListOfXmlFiles(), function ($potentialFilePath) use ($module, $area, $layoutFile) {
             $validFile = true;
 
-            if (!str_contains($potentialFilePath, $area)) {
+            if (!Functions::str_contains($potentialFilePath, $area)) {
                 // This is not in the same area
                 $validFile = false;
             }
-            if (!str_ends_with($potentialFilePath, $layoutFile)) {
+            if (!Functions::str_ends_with($potentialFilePath, $layoutFile)) {
                 // This is not the same file name as our layout file
                 $validFile = false;
             }
-            if (!str_contains($potentialFilePath, $module)) {
+            if (!Functions::str_contains($potentialFilePath, $module)) {
                 // This file path does not contain the module name, so not an override
                 $validFile = false;
             }
-            if (str_contains($potentialFilePath, 'vendor/magento/')) {
+            if (Functions::str_contains($potentialFilePath, 'vendor/magento/')) {
                 // This file path is a magento core override, not looking at core<->core modifications
                 $validFile = false;
             }
