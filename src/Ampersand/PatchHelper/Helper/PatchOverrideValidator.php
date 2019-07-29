@@ -3,6 +3,7 @@
 namespace Ampersand\PatchHelper\Helper;
 
 use Ampersand\PatchHelper\Patchfile\Entry as PatchEntry;
+use \Magento\Framework\Module\FullModuleList;
 
 class PatchOverrideValidator
 {
@@ -36,12 +37,18 @@ class PatchOverrideValidator
      */
     private $patchEntry;
 
+    /** 
+     * @var FullModuleList
+     */
+    private $fullModuleList;
+
     /**
      * PatchOverrideValidator constructor.
      * @param Magento2Instance $m2
      * @param PatchEntry $patchEntry
+     * @param FullModuleList $fullModuleList
      */
-    public function __construct(Magento2Instance $m2, PatchEntry $patchEntry)
+    public function __construct(Magento2Instance $m2, PatchEntry $patchEntry, FullModuleList $fullModuleList)
     {
         $this->m2 = $m2;
         $this->patchEntry = $patchEntry;
@@ -53,6 +60,7 @@ class PatchOverrideValidator
             self::TYPE_PREFERENCE => [],
             self::TYPE_METHOD_PLUGIN => [],
         ];
+        $this->fullModuleList = $fullModuleList;
     }
 
     /**
@@ -95,9 +103,10 @@ class PatchOverrideValidator
         }
 
         //TODO validate magento dependencies like dotmailer?
-        $modulesToExamine = [
-            'vendor/magento/',
-        ];
+        $modulesToExamine = $this->fullModuleList->getAll();
+        // $modulesToExamine = [
+        //     'vendor/magento/',
+        // ];
 
         $validModule = false;
         foreach ($modulesToExamine as $moduleToExamine) {
