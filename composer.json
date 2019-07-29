@@ -14,8 +14,11 @@
         "php": "~7.1|~7.2"
     },
     "autoload": {
+        "files": {
+            "registration.php"
+        },
         "psr-4": {
-            "Ampersand\\PatchHelper\\": "src/"
+            "Ampersand\\PatchHelper\\": ""
         }
     },
     "require-dev": {
