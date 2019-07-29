@@ -62,7 +62,7 @@ class PatchOverrideValidator
             self::TYPE_METHOD_PLUGIN => [],
         ];
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $this->fullModuleList = $objectManager->create(\Magento\Framework\Module\FullModuleList);
+        $this->fullModuleList = $objectManager->create('\Magento\Framework\Module\FullModuleList');
     }
 
     /**
