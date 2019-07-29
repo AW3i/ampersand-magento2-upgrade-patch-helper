@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "symfony/console": "^4.1",
+        "symfony/console": "*",
         "php": "~7.1|~7.2"
     },
     "autoload": {
