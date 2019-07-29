@@ -3,8 +3,9 @@
 namespace Ampersand\PatchHelper\Helper;
 
 use Ampersand\PatchHelper\Patchfile\Entry as PatchEntry;
-use \Magento\Framework\Module\FullModuleList;
+use Magento\Framework\Module\FullModuleList;
 use Ampersand\PatchHelper\Helper\Functions;
+use Magento\Framework\Module\Dir;
 
 class PatchOverrideValidator
 {
@@ -38,10 +39,15 @@ class PatchOverrideValidator
      */
     private $patchEntry;
 
-    /** 
+    /**
      * @var FullModuleList
      */
     private $fullModuleList;
+
+    /**
+     * @var Dir
+     */
+    private $moduleReader;
 
     /**
      * PatchOverrideValidator constructor.
@@ -61,8 +67,10 @@ class PatchOverrideValidator
             self::TYPE_PREFERENCE => [],
             self::TYPE_METHOD_PLUGIN => [],
         ];
+        // Initializing objects with the object manager is an antipattern
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $this->fullModuleList = $objectManager->create('\Magento\Framework\Module\FullModuleList');
+        $this->moduleReader = $objectManager->create('\Magento\Framework\Module\Dir');
     }
 
     /**
@@ -105,10 +113,11 @@ class PatchOverrideValidator
         }
 
         //TODO validate magento dependencies like dotmailer?
-        $modulesToExamine = $this->fullModuleList->getAll();
-        // $modulesToExamine = [
-        //     'vendor/magento/',
-        // ];
+        $modules = $this->fullModuleList->getNames();
+        $modulesToExamine = [];
+        foreach ($modules as $module) {
+            $modulesToExamine[] = strstr($this->moduleReader->getDir($module), 'vendor');
+        }
 
         $validModule = false;
         foreach ($modulesToExamine as $moduleToExamine) {
