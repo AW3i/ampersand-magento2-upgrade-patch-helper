@@ -220,16 +220,6 @@ class PatchOverrideValidator
         $file = $this->vendorFilepath;
         // var_dump($this->vendorFilepath);
 
-        // namespace regex ^(\s)*namespace(\s)+[a-zA-Z0-9\\].+;$/m
-        // probably resource heavy? opening all the files n stuff
-        //
-        $contents = file_get_contents($file);
-        preg_match('/^(\s)*namespace(\s)+[a-zA-Z0-9\\\\].+;$/m', $contents, $matches);
-        $namespace = $matches[0];
-        $namespace = preg_replace('/^(\s)*namespace(\s)+/m', '', $namespace);
-        $namespace = preg_replace('/;$/m', '', $namespace);
-        $namespace = $namespace . '\\' . basename($file, '.php');
-        var_dump($namespace);
         // var_dump($matches);
         // var_dump($file);
         // hax way of getting namespace
@@ -238,8 +228,20 @@ class PatchOverrideValidator
         $class = preg_replace('/\\.[^.\\s]{3,4}$/', '', $class);
         // var_dump('Class 2: ' . $class);
         $class = str_replace('/', '\\', $class);
+
         // var_dump('Class 3: ' . $class);
-        $class = $namespace;
+        // namespace regex ^(\s)*namespace(\s)+[a-zA-Z0-9\\].+;$/m
+        // probably resource heavy? opening all the files n stuff
+        $contents = file_get_contents($file);
+        preg_match('/^(\s)*namespace(\s)+[a-zA-Z0-9\\\\].+;$/m', $contents, $matches);
+        if (array_key_exists(0, $matches)) {
+            $namespace = $matches[0];
+            $namespace = preg_replace('/^(\s)*namespace(\s)+/m', '', $namespace);
+            $namespace = preg_replace('/;$/m', '', $namespace);
+            $namespace = $namespace . '\\' . basename($file, '.php');
+            var_dump($namespace);
+            $class = $namespace;
+        }
 
         /*
          * Collect a list of non-magento plugins on the given class
