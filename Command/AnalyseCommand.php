@@ -41,6 +41,8 @@ class AnalyseCommand extends Command
         $summaryOutputData = [];
         $patchFilesToOutput = [];
         foreach ($patchFile->getFiles() as $patchFile) {
+            // Gets files changed in vendor, including files like mageplaza/ Popup
+            // string(58) "file: vendor/mageplaza/module-better-popup/Block/Popup.php"
             $file = $patchFile->getPath();
             try {
                 $patchOverrideValidator = new Helper\PatchOverrideValidator($magento2, $patchFile);
@@ -49,10 +51,14 @@ class AnalyseCommand extends Command
                     continue;
                 }
 
+                // Better Popup makes it through canValidate
                 $output->writeln("<info>Validating $file</info>", OutputInterface::VERBOSITY_VERBOSE);
+                var_dump($file);
 
+                // here is ze magic
                 foreach ($patchOverrideValidator->validate()->getErrors() as $errorType => $errors) {
                     if (!isset($patchFilesToOutput[$file])) {
+                        // assigns patchfiles
                         $patchFilesToOutput[$file] = $patchFile;
                     }
                     foreach ($errors as $error) {

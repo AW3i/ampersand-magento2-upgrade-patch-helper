@@ -163,6 +163,7 @@ class Entry
         foreach ($modifiedLines['original'] as $lineNumber => $expectedLine) {
             $affectedFunctions[] = $this->getAffectedFunction($lineNumber, $originalFileContents, $expectedLine);
         }
+        var_dump($affectedFunctions);
 
         // Go through the list and collect valid public function
         $this->affectedPhpFunctions = [];

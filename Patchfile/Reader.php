@@ -20,7 +20,9 @@ class Reader
     public function __construct($path)
     {
         $this->path = $path;
+        var_dump($this->path);
         $this->projectDir = dirname($path);
+        var_dump($this->projectDir);
         $this->reset();
     }
 

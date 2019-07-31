@@ -114,17 +114,22 @@ class PatchOverrideValidator
 
         //TODO validate magento dependencies like dotmailer?
         $modules = $this->fullModuleList->getNames();
+        // var_dump($modules);
+        // var_dump($modules);
         $modulesToExamine = [];
         foreach ($modules as $module) {
-            $modulesToExamine[] = strstr($this->moduleReader->getDir($module), 'vendor');
+            // $modulesToExamine[] = strstr($this->moduleReader->getDir($module), 'vendor');
+            $modulesToExamine[] = $this->moduleReader->getDir($module);
         }
+        // var_dump($modulesToExamine);
 
-        $validModule = false;
+        $validModule = true;
         foreach ($modulesToExamine as $moduleToExamine) {
-            if (Functions::str_starts_with($file, $moduleToExamine)) {
-                $validModule = true;
-                break;
-            }
+            // Doesn't allow third party plugin checks eh?
+            // if (Functions::str_starts_with($file, $moduleToExamine)) {
+                // $validModule = true;
+                // var_dump($moduleToExamine);
+            // }
         }
 
         return ($validExtension && $validModule);
@@ -135,6 +140,9 @@ class PatchOverrideValidator
      */
     public function validate()
     {
+        // var_dump($this->vendorFilepath);
+        // var_dump($this->appCodeFilepath);
+        // var_dump($this->vendorFilepath, PATHINFO_EXTENSION);
         switch (pathinfo($this->vendorFilepath, PATHINFO_EXTENSION)) {
             case 'php':
                 $this->validatePhpFileForPreferences();
@@ -209,11 +217,29 @@ class PatchOverrideValidator
      */
     private function validatePhpFileForPlugins()
     {
-        $file = $this->appCodeFilepath;
+        $file = $this->vendorFilepath;
+        // var_dump($this->vendorFilepath);
 
+        // namespace regex ^(\s)*namespace(\s)+[a-zA-Z0-9\\].+;$/m
+        // probably resource heavy? opening all the files n stuff
+        //
+        $contents = file_get_contents($file);
+        preg_match('/^(\s)*namespace(\s)+[a-zA-Z0-9\\\\].+;$/m', $contents, $matches);
+        $namespace = $matches[0];
+        $namespace = preg_replace('/^(\s)*namespace(\s)+/m', '', $namespace);
+        $namespace = preg_replace('/;$/m', '', $namespace);
+        $namespace = $namespace . '\\' . basename($file, '.php');
+        var_dump($namespace);
+        // var_dump($matches);
+        // var_dump($file);
+        // hax way of getting namespace
         $class = ltrim($file, 'app/code/');
+        // var_dump('Class 1: ' . $class);
         $class = preg_replace('/\\.[^.\\s]{3,4}$/', '', $class);
+        // var_dump('Class 2: ' . $class);
         $class = str_replace('/', '\\', $class);
+        // var_dump('Class 3: ' . $class);
+        $class = $namespace;
 
         /*
          * Collect a list of non-magento plugins on the given class
@@ -221,19 +247,28 @@ class PatchOverrideValidator
         $nonMagentoPlugins = [];
 
         $areaConfig = $this->m2->getAreaConfig();
+        // here is the bug apparent the namespace \Mageplaza\Betterpopup is read as \Magento\Vendor\Mageplaza
         foreach (array_keys($areaConfig) as $area) {
             $tmpClass = $class;
             if (!isset($areaConfig[$area][$tmpClass]['plugins'])) {
                 //Search with and without the preceding slash
                 $tmpClass = "\\$tmpClass";
+                // Displays only vendor plugins
+                // Also displays the namespaces with Magento\\Vendor appended
+                var_dump('Should match '.$tmpClass);
+// above output string(57) "\Magento\Vendor\mageplaza\module-better-popup\Block\Popup"
             }
+            // var_dump(array_keys($areaConfig[$area]));
+  // string(34) "\Mageplaza\BetterPopup\Block\Popup"
             if (isset($areaConfig[$area][$tmpClass]['plugins'])) {
                 foreach ($areaConfig[$area][$tmpClass]['plugins'] as $pluginName => $pluginConf) {
                     if (isset($pluginConf['disabled']) && $pluginConf['disabled']) {
                         continue;
                     }
+                    var_dump('PluginName:' . $pluginName);
                     $pluginClass = $pluginConf['instance'];
                     $pluginClass = ltrim($pluginClass, '\\');
+                    var_dump('PluginClass: '. $pluginClass);
                     if (!Functions::str_starts_with($pluginClass, 'Magento')) {
                         $nonMagentoPlugins[$pluginClass] = $pluginClass;
                     }
@@ -241,6 +276,9 @@ class PatchOverrideValidator
             }
         }
 
+        // Edw mas petaei
+        var_dump('edw');
+        var_dump(empty($nonMagentoPlugins));
         if (empty($nonMagentoPlugins)) {
             return;
         }
@@ -250,6 +288,7 @@ class PatchOverrideValidator
          */
         $affectedInterceptableMethods = $this->patchEntry->getAffectedInterceptablePhpFunctions();
         if (empty($affectedInterceptableMethods)) {
+            var_dump('feugeis');
             return;
         }
 
@@ -259,8 +298,10 @@ class PatchOverrideValidator
              */
             $methodsIntercepted = [];
             foreach (get_class_methods($plugin) as $method) {
+                var_dump($method);
                 if (Functions::str_starts_with($method, 'before')) {
                     $methodName = strtolower(substr($method, 6));
+                    var_dump('Edw ti ginetai ' . $methodName);
                     if (!isset($methodsIntercepted[$methodName])) {
                         $methodsIntercepted[$methodName] = [];
                     }
@@ -319,6 +360,7 @@ class PatchOverrideValidator
             throw new \InvalidArgumentException("Could not instantiate $preference (virtualType?)");
         }
         $path = realpath($refClass->getFileName());
+        // var_dump($path);
 
         $pathsToIgnore = [
             '/vendor/magento/',
